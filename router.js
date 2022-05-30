@@ -280,33 +280,52 @@ router.get("/getBlogDetail", async (req, res) => {
 router.put("/updateLikes", async (req, res) => {
     let likeSql = "";
     let blogSql = "";
-    if (req.body.isLike) {
-        likeSql = `insert into likes (username, blogId, createTime) values(?, ?, ${ new Date().getTime()})`;
-        blogSql = `update blog set likes = likes + 1 where id = '${req.body.blogId}'`;
+
+    if (!req.body.username) {
+        if (req.body.isLike) {
+            blogSql = `update blog set likes = likes + 1 where id = '${req.body.blogId}'`;
+        } else {
+            blogSql = `update blog set likes = likes - 1 where id = '${req.body.blogId}'`;
+        }
+        await new Promise((resolve, reject) => [
+            db.query(blogSql, (err, result) => {
+                if (err) {
+                    reject(err);
+                };
+                resolve(result);
+            })
+        ]);
     } else {
-        likeSql = "delete from likes where username = ? and blogId = ?";
-        blogSql = `update blog set likes = likes - 1 where id = '${req.body.blogId}'`;
+        if (req.body.isLike) {
+            likeSql = `insert into likes (username, blogId, createTime) values(?, ?, ${ new Date().getTime()})`;
+            blogSql = `update blog set likes = likes + 1 where id = '${req.body.blogId}'`;
+        } else {
+            likeSql = "delete from likes where username = ? and blogId = ?";
+            blogSql = `update blog set likes = likes - 1 where id = '${req.body.blogId}'`;
+        }
+        await new Promise((resolve, reject) => [
+            db.query(likeSql, [req.body.username, req.body.blogId], (err, result) => {
+                if (err) {
+                    reject(err);
+                };
+                resolve(result);
+            })
+        ]);
+        await new Promise((resolve, reject) => [
+            db.query(blogSql, (err, result) => {
+                if (err) {
+                    reject(err);
+                };
+                resolve(result);
+            })
+        ]);
+        // res.send({
+        //     code: 200,
+        //     msg: "成功"
+        // })
     }
-    await new Promise((resolve, reject) => [
-        db.query(likeSql, [req.body.username, req.body.blogId], (err, result) => {
-            if (err) {
-                reject(err);
-            };
-            resolve(result);
-        })
-    ]);
-    await new Promise((resolve, reject) => [
-        db.query(blogSql, (err, result) => {
-            if (err) {
-                reject(err);
-            };
-            resolve(result);
-        })
-    ]);
-    res.send({
-        code: 200,
-        msg: "成功"
-    })
+
+
 })
 
 
@@ -501,7 +520,7 @@ router.delete("/deleteBlog", (req, res) => {
 
 
 
-router.put("/updateBlog",async (req, res) => {
+router.put("/updateBlog", async (req, res) => {
     if (!req.body.blog.title) {
         res.send({
             code: 400,
