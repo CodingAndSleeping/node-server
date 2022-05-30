@@ -16,6 +16,6 @@ app.use(express.static("./public"))
 app.use("/static", express.static("./static"))
 
 
-app.listen(80, function () {
-  console.log("应用实例，访问地址为 http://localhost:3000")
+app.listen(3000, function () {
+  console.log("应用实例，访问地址为 http://47.113.230.146:3000")
 })
