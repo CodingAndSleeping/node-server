@@ -17,5 +17,5 @@ app.use("/static", express.static("./static"))
 
 
 app.listen(3000, function () {
-  console.log("应用实例，访问地址为 http://47.113.230.146:3000")
+  console.log("应用实例，访问地址为 http://114.132.182.235:3000")
 })
