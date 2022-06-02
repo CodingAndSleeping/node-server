@@ -5,12 +5,12 @@ var pool = mysql.createPool({
   password : 'root',
   database : 'myblog'
 });
-let queryData = function(sql, callback){
+let queryData = function(sql,value, callback){
   pool.getConnection((err, conn)=>{
     if(err){
       callback(err, null);
     }else{
-      conn.query(sql, (err, result)=>{
+      conn.query(sql,value, (err, result)=>{
         callback(err, result);
         conn.release();
       })
