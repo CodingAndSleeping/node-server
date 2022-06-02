@@ -44,6 +44,7 @@ router.post("/login", (req, res) => {
             avater: result[0].avater,
             token: generateToken(req.body)
         })
+        db.release();
     })
 })
 
@@ -64,6 +65,7 @@ router.post("/validateName", (req, res) => {
         res.send({
             code: 200
         })
+        db.release();
     })
 })
 router.post("/register", (req, res) => {
@@ -78,6 +80,7 @@ router.post("/register", (req, res) => {
             code: 200,
             msg: "注册成功!"
         });
+        db.release();
     })
 
 
@@ -94,6 +97,7 @@ router.get("/getLabels", (req, res) => {
             labels: result
 
         });
+        db.release();
     })
 })
 
@@ -162,6 +166,7 @@ router.post("/addBlog", async (req, res) => {
             code: 200,
             msg: "发布成功!"
         });
+        db.release();
     })
 
 })
@@ -213,6 +218,7 @@ router.get("/getBlogs", async (req, res) => {
                 })
             };
             resolve(results);
+            db.release();
         })
     })
 
@@ -228,7 +234,8 @@ router.get("/getBlogs", async (req, res) => {
             if (err) {
                 reject(err)
             };
-            resolve(result[0]["count(*)"])
+            resolve(result[0]["count(*)"]);
+            db.release();
         })
     })
 
@@ -248,7 +255,8 @@ router.get("/getBlogDetail", async (req, res) => {
             if (err) {
                 reject(err)
             };
-            resolve(result[0])
+            resolve(result[0]);
+            db.release();
         })
     });
     if (!req.query.isUpdate) {
@@ -260,7 +268,8 @@ router.get("/getBlogDetail", async (req, res) => {
             if (err) {
                 reject(err);
             };
-            resolve(result[0])
+            resolve(result[0]);
+            db.release();
         })
     });
 
@@ -293,6 +302,7 @@ router.put("/updateLikes", async (req, res) => {
                     reject(err);
                 };
                 resolve(result);
+                db.release();
             })
         ]);
     } else {
@@ -309,6 +319,7 @@ router.put("/updateLikes", async (req, res) => {
                     reject(err);
                 };
                 resolve(result);
+                db.release();
             })
         ]);
         await new Promise((resolve, reject) => [
@@ -317,6 +328,7 @@ router.put("/updateLikes", async (req, res) => {
                     reject(err);
                 };
                 resolve(result);
+                db.release();
             })
         ]);
         // res.send({
@@ -339,6 +351,7 @@ router.put("/updateViews", (req, res) => {
             code: 200,
             msg: "成功"
         })
+        db.release();
     })
 })
 
@@ -359,6 +372,7 @@ router.get("/isLike", (req, res) => {
                 isLike: false
             })
         }
+        db.release();
     })
 })
 
@@ -400,6 +414,7 @@ router.get("/getUserBlogs", async (req, res) => {
                 })
             };
             resolve(results);
+            db.release();
         })
     })
 
@@ -409,7 +424,8 @@ router.get("/getUserBlogs", async (req, res) => {
             if (err) {
                 reject(err)
             };
-            resolve(result[0]["count(*)"])
+            resolve(result[0]["count(*)"]);
+            db.release();
         })
     })
     let viewsNumSql = `select sum(views) from blog where username = '${req.query.username}'`
@@ -418,7 +434,8 @@ router.get("/getUserBlogs", async (req, res) => {
             if (err) {
                 reject(err)
             };
-            resolve(result[0]["sum(views)"])
+            resolve(result[0]["sum(views)"]);
+            db.release();
         })
     })
     let likesNumSql = `select sum(likes) from blog where username = '${req.query.username}'`
@@ -427,7 +444,8 @@ router.get("/getUserBlogs", async (req, res) => {
             if (err) {
                 reject(err)
             };
-            resolve(result[0]["sum(likes)"])
+            resolve(result[0]["sum(likes)"]);
+            db.release();
         })
     })
 
@@ -437,7 +455,8 @@ router.get("/getUserBlogs", async (req, res) => {
             if (err) {
                 reject(err)
             };
-            resolve(result[0]["avater"])
+            resolve(result[0]["avater"]);
+            db.release();
         })
     })
 
@@ -457,7 +476,8 @@ router.get("/getAvater", async (req, res) => {
             if (err) {
                 reject(err)
             };
-            resolve(result[0]["avater"])
+            resolve(result[0]["avater"]);
+            db.release();
         })
     })
 
@@ -497,7 +517,8 @@ router.post("/upLoadAvater", upload.array("img", 1), (req, res) => {
             res.send({
                 code: 200,
                 imgUrl: avaterUrl
-            })
+            });
+            db.release();
         })
     }
 })
@@ -512,7 +533,8 @@ router.delete("/deleteBlog", (req, res) => {
         res.send({
             code: 200,
             msg: "删除成功"
-        })
+        });
+        db.release();
     })
 
 })
@@ -583,6 +605,7 @@ router.put("/updateBlog", async (req, res) => {
             code: 200,
             msg: "修改成功！"
         })
+        db.release();
     })
 })
 
