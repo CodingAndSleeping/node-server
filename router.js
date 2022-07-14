@@ -24,7 +24,7 @@ marked.setOptions({
 });
 
 router.post("/login", (req, res) => {
-    queryData(`select * from user where username = '${req.body.username}' and password = '${req.body.password}'`, [],(err, result) => {
+    queryData(`select * from user where username = '${req.body.username}' and password = '${req.body.password}'`, [], (err, result) => {
         if (err) {
             console.log(err)
             return;
@@ -49,7 +49,7 @@ router.post("/login", (req, res) => {
 
 router.post("/validateName", (req, res) => {
     // console.log(req.body)
-    queryData(`select * from user where username = '${req.body.username}'`,[], (err, nameResult) => {
+    queryData(`select * from user where username = '${req.body.username}'`, [], (err, nameResult) => {
         if (err) {
             console.log(err)
             return;
@@ -68,7 +68,7 @@ router.post("/validateName", (req, res) => {
 })
 router.post("/register", (req, res) => {
     const id = uuid.v1()
-    queryData(`insert into user(id, username, email, password, avater) values('${id}','${req.body.username}','${req.body.email}','${req.body.password}', '${req.body.avater}' ) `,[], (err, result) => {
+    queryData(`insert into user(id, username, email, password, avater) values('${id}','${req.body.username}','${req.body.email}','${req.body.password}', '${req.body.avater}' ) `, [], (err, result) => {
         if (err) {
             console.log(err)
             return;
@@ -84,7 +84,7 @@ router.post("/register", (req, res) => {
 })
 
 router.get("/getLabels", (req, res) => {
-    queryData(`select * from blog_label`,[], (err, result) => {
+    queryData(`select * from blog_label`, [], (err, result) => {
         if (err) {
             console.log(err)
             return;
@@ -144,7 +144,7 @@ router.post("/addBlog", async (req, res) => {
     }
 
     for (let i = 0; i < pictureUrls.length; i++) {
-        req.body.content = req.body.content.replace(`![${pictureNames[i]}](${i+1})`, `![](${pictureUrls[i]})`)
+        req.body.content = req.body.content.replace(`![${pictureNames[i]}](${i + 1})`, `![](${pictureUrls[i]})`)
     }
 
 
@@ -152,7 +152,7 @@ router.post("/addBlog", async (req, res) => {
 
     labels = req.body.labels.join()
 
-    queryData(`insert into blog(id, title, content, create_time, username,labels, views, likes) values('${id}','${req.body.title}', ?, '${req.body.createTime}', '${req.body.username}', '${labels}', '${0}', '${0}')`,[req.body.content],  (err, result) => {
+    queryData(`insert into blog(id, title, content, create_time, username,labels, views, likes) values('${id}','${req.body.title}', ?, '${req.body.createTime}', '${req.body.username}', '${labels}', '${0}', '${0}')`, [req.body.content], (err, result) => {
         if (err) {
             console.log(err)
             return;
@@ -183,16 +183,11 @@ router.get("/getBlogs", async (req, res) => {
 
 
     blogSql += ` order by 
-    YEAR (create_time),
-    MONTH (create_time),
-	DAY (create_time),
-	HOUR (create_time),
-	MINUTE (create_time),
-	SECOND (create_time) 
+    create_time desc
     limit ${page}, ${pageSize}`
     const blogs = await new Promise((resolve, reject) => {
         let results = [];
-        queryData(blogSql,[],  (err, result) => {
+        queryData(blogSql, [], (err, result) => {
             if (err) {
                 reject(err)
             };
@@ -214,7 +209,7 @@ router.get("/getBlogs", async (req, res) => {
             resolve(results);
         })
     })
-
+    // blogs.reverse();
     let numSql = "select count(*) from blog where 1 = 1";
     if (req.query.keywords) {
         numSql += ` and title like '%${req.query.keywords}%'`
@@ -231,7 +226,6 @@ router.get("/getBlogs", async (req, res) => {
         })
     })
 
-
     res.send({
         code: 200,
         blogs,
@@ -243,7 +237,7 @@ router.get("/getBlogs", async (req, res) => {
 router.get("/getBlogDetail", async (req, res) => {
     let blogSql = `select * from blog where id = '${req.query.id}'`;
     const blogResult = await new Promise((resolve, reject) => {
-        queryData(blogSql,[],  (err, result) => {
+        queryData(blogSql, [], (err, result) => {
             console.log(result)
             if (err) {
                 reject(err)
@@ -252,11 +246,14 @@ router.get("/getBlogDetail", async (req, res) => {
         })
     });
     if (!req.query.isUpdate) {
-        blogResult.content = marked(blogResult.content)
+        if(blogResult.content){
+            blogResult.content = marked(blogResult.content)
+        }
+
     }
     let userSql = `select * from user where username = '${blogResult.username}'`
     const userResult = await new Promise((resolve, reject) => {
-        queryData(userSql,[],  (err, result) => {
+        queryData(userSql, [], (err, result) => {
             console.log(result)
             if (err) {
                 reject(err);
@@ -298,14 +295,14 @@ router.put("/updateLikes", async (req, res) => {
         ]);
     } else {
         if (req.body.isLike) {
-            likeSql = `insert into likes (username, blogId, createTime) values('${req.body.username}', '${req.body.blogId}', ${ new Date().getTime()})`;
+            likeSql = `insert into likes (username, blogId, createTime) values('${req.body.username}', '${req.body.blogId}', ${new Date().getTime()})`;
             blogSql = `update blog set likes = likes + 1 where id = '${req.body.blogId}'`;
         } else {
             likeSql = `delete from likes where username = '${req.body.username}' and blogId = '${req.body.blogId}'`;
             blogSql = `update blog set likes = likes - 1 where id = '${req.body.blogId}'`;
         }
         await new Promise((resolve, reject) => [
-            queryData(likeSql,[],  (err, result) => {
+            queryData(likeSql, [], (err, result) => {
                 if (err) {
                     reject(err);
                 };
@@ -349,7 +346,7 @@ router.put("/updateViews", (req, res) => {
 
 router.get("/isLike", (req, res) => {
     let sql = `select * from likes where username = '${req.query.username}' and blogId = '${req.query.blogId}'`;
-    queryData(sql,[],  (err, result) => {
+    queryData(sql, [], (err, result) => {
         if (err) {
             console.log(err)
             return;
@@ -375,16 +372,11 @@ router.get("/getUserBlogs", async (req, res) => {
         page = (req.query.page - 1) * pageSize;
     }
     blogSql += ` order by 
-    YEAR (create_time),
-    MONTH (create_time),
-	DAY (create_time),
-	HOUR (create_time),
-	MINUTE (create_time),
-	SECOND (create_time) 
+    create_time desc
     limit ${page}, ${pageSize}`
     const blogs = await new Promise((resolve, reject) => {
         let results = [];
-        queryData(blogSql,[],  (err, result) => {
+        queryData(blogSql, [], (err, result) => {
             if (err) {
                 reject(err)
             };
@@ -406,10 +398,10 @@ router.get("/getUserBlogs", async (req, res) => {
             resolve(results);
         })
     })
-
+    // blogs.reverse();
     let numSql = `select count(*) from blog where username = '${req.query.username}'`;
     const total = await new Promise((resolve, reject) => {
-        queryData(numSql,[],  (err, result) => {
+        queryData(numSql, [], (err, result) => {
             if (err) {
                 reject(err)
             };
@@ -427,7 +419,7 @@ router.get("/getUserBlogs", async (req, res) => {
     })
     let likesNumSql = `select sum(likes) from blog where username = '${req.query.username}'`
     const likesTotal = await new Promise((resolve, reject) => {
-        queryData(likesNumSql,[],  (err, result) => {
+        queryData(likesNumSql, [], (err, result) => {
             if (err) {
                 reject(err)
             };
@@ -492,7 +484,7 @@ router.post("/upLoadAvater", upload.array("img", 1), (req, res) => {
     if (req.headers.token) {
         avaterUrl = "http://" + req.headers.host + "/" + req.files[0].path.replace(/\\/g, "/")
         let sql = `update user set avater = '${avaterUrl}' where username = '${req.body.username}'`
-        queryData(sql,[],  (err, result) => {
+        queryData(sql, [], (err, result) => {
             if (err) {
                 console.log(err)
                 return;
@@ -507,7 +499,7 @@ router.post("/upLoadAvater", upload.array("img", 1), (req, res) => {
 
 router.delete("/deleteBlog", (req, res) => {
     let sql = `delete from blog where id = '${req.query.id}'`
-    queryData(sql,[],  (err, result) => {
+    queryData(sql, [], (err, result) => {
         if (err) {
             console.log(err)
             return;
@@ -568,11 +560,11 @@ router.put("/updateBlog", async (req, res) => {
     }
 
     for (let i = 0; i < pictureUrls.length; i++) {
-        req.body.blog.content = req.body.blog.content.replace(`![${pictureNames[i]}](${i+1})`, `![](${pictureUrls[i]})`)
+        req.body.blog.content = req.body.blog.content.replace(`![${pictureNames[i]}](${i + 1})`, `![](${pictureUrls[i]})`)
     }
     req.body.blog.labels = req.body.blog.labels.join()
     let sql = `update blog set title = '${req.body.blog.title}', content = ?, labels = '${req.body.blog.labels}' where id = '${req.body.id}'`;
-    queryData(sql, [req.body.blog.content],(err, result) => {
+    queryData(sql, [req.body.blog.content], (err, result) => {
         if (err) {
             res.send({
                 code: 400,
