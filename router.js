@@ -10,6 +10,8 @@ const {
     generateToken
 } = require("./token");
 
+const xss = require("xss");
+
 const router = express.Router()
 const rendererMD = new marked.Renderer();
 marked.setOptions({
@@ -247,9 +249,8 @@ router.get("/getBlogDetail", async (req, res) => {
     });
     if (!req.query.isUpdate) {
         if(blogResult.content){
-            blogResult.content = marked(blogResult.content)
+            blogResult.content = xss(marked(blogResult.content));
         }
-
     }
     let userSql = `select * from user where username = '${blogResult.username}'`
     const userResult = await new Promise((resolve, reject) => {
